@@ -46,7 +46,7 @@ function App() {
     >
       <WebHeader />
       
-      <div className="flex-1 flex flex-col overflow-x-hidden pt-20">
+      <div className="flex-1 flex flex-col overflow-x-hidden pt-16">
         <div className="container mx-auto px-4 py-6 flex-1 flex flex-col gap-6 max-w-7xl">
           {/* Input Section */}
           {showInputs && (

@@ -324,3 +324,12 @@ button.accent {
     font-style: italic;
   }
 }
+
+/* Theme Selector Styles */
+.theme-select:hover {
+  border-color: hsl(var(--color-primary)) !important;
+}
+
+.theme-select:focus {
+  border-color: hsl(var(--color-primary)) !important;
+}
