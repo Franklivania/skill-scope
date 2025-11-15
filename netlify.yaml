@@ -1,0 +1,8 @@
+# Netlify configuration for a React app
+
+[build]
+  command = "bun run build"
+  publish = "build"
+
+[[plugins]]
+  package = "@netlify/plugin-react"
