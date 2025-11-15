@@ -1,0 +1,326 @@
+@import "tailwindcss";
+
+:root {
+  /* Ghost Theme (Default) */
+  --color-primary: 220 13% 18%;
+  --color-primary-dark: 220 13% 12%;
+  --color-secondary: 220 9% 46%;
+  --color-secondary-dark: 220 9% 35%;
+  --color-accent: 220 13% 91%;
+  --color-accent-dark: 220 13% 85%;
+  --color-background: 0 0% 100%;
+  --color-background-dark: 220 13% 96%;
+  --color-surface: 220 13% 98%;
+  --color-surface-dark: 220 13% 94%;
+  --color-text: 220 13% 18%;
+  --color-text-dark: 220 13% 10%;
+  --color-text-muted: 220 9% 46%;
+  --color-text-muted-dark: 220 9% 35%;
+  --color-border: 220 13% 85%;
+  --color-border-dark: 220 13% 75%;
+  --color-border-muted: 220 13% 92%;
+  --color-border-muted-dark: 220 13% 88%;
+  --color-border-accent: 220 13% 70%;
+  --color-border-accent-dark: 220 13% 60%;
+  --color-border-background: 220 13% 90%;
+  --color-border-background-dark: 220 13% 85%;
+}
+
+[data-theme="ghost"] {
+  --color-primary: 220 13% 18%;
+  --color-primary-dark: 220 13% 12%;
+  --color-secondary: 220 9% 46%;
+  --color-secondary-dark: 220 9% 35%;
+  --color-accent: 220 13% 91%;
+  --color-accent-dark: 220 13% 85%;
+  --color-background: 0 0% 100%;
+  --color-background-dark: 220 13% 96%;
+  --color-surface: 220 13% 98%;
+  --color-surface-dark: 220 13% 94%;
+  --color-text: 220 13% 18%;
+  --color-text-dark: 220 13% 10%;
+  --color-text-muted: 220 9% 46%;
+  --color-text-muted-dark: 220 9% 35%;
+  --color-border: 220 13% 85%;
+  --color-border-dark: 220 13% 75%;
+  --color-border-muted: 220 13% 92%;
+  --color-border-muted-dark: 220 13% 88%;
+  --color-border-accent: 220 13% 70%;
+  --color-border-accent-dark: 220 13% 60%;
+  --color-border-background: 220 13% 90%;
+  --color-border-background-dark: 220 13% 85%;
+}
+
+[data-theme="amethyst"] {
+  --color-primary: 270 87% 71%;
+  --color-primary-dark: 270 46% 50%;
+  --color-secondary: 320 55% 73%; 
+  --color-secondary-dark: 320 50% 50%;
+  --color-accent: 288 100% 90%;   
+  --color-accent-dark: 288 80% 80%;
+  --color-background: 280 40% 99%;
+  --color-background-dark: 280 40% 93%;
+  --color-surface: 270 60% 97%;   
+  --color-surface-dark: 270 60% 90%;
+  --color-text: 268 60% 22%;      
+  --color-text-dark: 268 60% 14%;
+  --color-text-muted: 268 25% 57%;
+  --color-text-muted-dark: 268 25% 44%;
+  --color-border: 270 20% 85%;
+  --color-border-dark: 270 20% 65%;
+  --color-border-muted: 285 27% 90%;
+  --color-border-muted-dark: 285 27% 78%;
+  --color-border-accent: 270 60% 65%;
+  --color-border-accent-dark: 270 60% 55%;
+  --color-border-background: 270 21% 94%;
+  --color-border-background-dark: 270 21% 88%;
+}
+
+[data-theme="serious blue"] {
+  --color-primary: 217 91% 60%;
+  --color-primary-dark: 217 91% 50%;
+  --color-secondary: 217 33% 47%;
+  --color-secondary-dark: 217 33% 37%;
+  --color-accent: 217 91% 95%;
+  --color-accent-dark: 217 91% 88%;
+  --color-background: 217 33% 17%;
+  --color-background-dark: 217 33% 12%;
+  --color-surface: 217 33% 22%;
+  --color-surface-dark: 217 33% 18%;
+  --color-text: 217 33% 95%;
+  --color-text-dark: 217 33% 100%;
+  --color-text-muted: 217 33% 70%;
+  --color-text-muted-dark: 217 33% 80%;
+  --color-border: 217 33% 35%;
+  --color-border-dark: 217 33% 28%;
+  --color-border-muted: 217 33% 30%;
+  --color-border-muted-dark: 217 33% 25%;
+  --color-border-accent: 217 91% 70%;
+  --color-border-accent-dark: 217 91% 65%;
+  --color-border-background: 217 33% 25%;
+  --color-border-background-dark: 217 33% 20%;
+}
+
+[data-theme="burgundy"] {
+  --color-primary: 340 75% 45%;
+  --color-primary-dark: 340 75% 38%;
+  --color-secondary: 340 50% 35%;
+  --color-secondary-dark: 340 50% 28%;
+  --color-accent: 340 75% 95%;
+  --color-accent-dark: 340 75% 88%;
+  --color-background: 340 30% 10%;
+  --color-background-dark: 340 30% 6%;
+  --color-surface: 340 30% 15%;
+  --color-surface-dark: 340 30% 12%;
+  --color-text: 340 30% 95%;
+  --color-text-dark: 340 30% 100%;
+  --color-text-muted: 340 30% 70%;
+  --color-text-muted-dark: 340 30% 80%;
+  --color-border: 340 30% 30%;
+  --color-border-dark: 340 30% 25%;
+  --color-border-muted: 340 30% 25%;
+  --color-border-muted-dark: 340 30% 20%;
+  --color-border-accent: 340 75% 60%;
+  --color-border-accent-dark: 340 75% 55%;
+  --color-border-background: 340 30% 20%;
+  --color-border-background-dark: 340 30% 15%;
+}
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-dark: var(--color-secondary-dark);
+  --color-accent: var(--color-accent);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-background: var(--color-background);
+  --color-background-dark: var(--color-background-dark);
+  --color-surface: var(--color-surface);
+  --color-surface-dark: var(--color-surface-dark);
+  --color-text: var(--color-text);
+  --color-text-dark: var(--color-text-dark);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-muted-dark: var(--color-text-muted-dark);
+  --color-border: var(--color-border);
+  --color-border-dark: var(--color-border-dark);
+  --color-border-muted: var(--color-border-muted);
+  --color-border-muted-dark: var(--color-border-muted-dark);
+  --color-border-accent: var(--color-border-accent);
+  --color-border-accent-dark: var(--color-border-accent-dark);
+  --color-border-background: var(--color-border-background);
+  --color-border-background-dark: var(--color-border-background-dark);
+}
+
+html, body {
+  height: 100vh;
+  width: 100%;
+  max-width: 120em;
+  overflow: hidden;
+  background-color: hsl(var(--color-background));
+  color: hsl(var(--color-text));
+
+  h1 { @apply text-2xl font-bold }
+  h2 { @apply text-xl font-semibold }
+  h3 { @apply text-lg font-semibold }
+  h4 { @apply text-lg font-semibold }
+  h5 { @apply text-sm font-semibold }
+  h6 { @apply text-sm font-semibold }
+  p {@apply text-base font-normal}
+  a {@apply text-base font-normal}
+  button {@apply text-base font-normal cursor-pointer}
+  input {@apply text-base font-normal}
+  textarea {@apply text-base font-normal}
+  select {@apply text-base font-normal}
+  option {@apply text-base font-normal}
+  label {@apply text-base font-normal}
+  legend {@apply text-base font-normal}
+  fieldset {@apply text-base font-normal}
+  textarea {@apply text-base font-normal}
+}
+
+button.default.primary,
+button.primary {
+  background-color: hsl(var(--color-primary));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: hsl(var(--color-primary-dark));
+  }
+}
+
+button.default.secondary,
+button.secondary {
+  background-color: hsl(var(--color-secondary));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: hsl(var(--color-secondary-dark));
+  }
+}
+
+button.default.accent,
+button.accent {
+  background-color: hsl(var(--color-accent));
+  color: hsl(var(--color-text));
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: hsl(var(--color-accent-dark));
+  }
+}
+
+/* Markdown Content Styles */
+.markdown-content {
+  line-height: 1.6;
+  
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  h1 {
+    font-size: 1.875rem;
+    border-bottom: 2px solid hsl(var(--color-border));
+    padding-bottom: 0.5rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid hsl(var(--color-border));
+    padding-bottom: 0.25rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+  
+  h4 {
+    font-size: 1.125rem;
+  }
+  
+  p {
+    margin: 1em 0;
+  }
+  
+  ul, ol {
+    margin: 1em 0;
+    padding-left: 1.5em;
+  }
+  
+  li {
+    margin: 0.5em 0;
+    line-height: 1.5;
+  }
+  
+  ul li {
+    list-style-type: disc;
+  }
+  
+  ol li {
+    list-style-type: decimal;
+  }
+  
+  code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+  }
+  
+  pre {
+    margin: 1em 0;
+    padding: 1em;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    
+    code {
+      padding: 0;
+      background: transparent;
+    }
+  }
+  
+  blockquote {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 4px solid hsl(var(--color-primary));
+  }
+  
+  hr {
+    margin: 2em 0;
+    border: none;
+    border-top: 1px solid hsl(var(--color-border));
+  }
+  
+  a {
+    text-decoration: underline;
+    transition: opacity 0.2s;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+  
+  strong {
+    font-weight: 700;
+  }
+  
+  em {
+    font-style: italic;
+  }
+}

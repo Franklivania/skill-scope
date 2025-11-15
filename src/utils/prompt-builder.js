@@ -1,0 +1,245 @@
+/**
+ * Prompt Builder Utility
+ * Constructs prompts based on tone and analysis method
+ */
+
+const TONES = {
+  casual: {
+    name: 'Casual',
+    description: 'Friendly, conversational, and encouraging',
+    systemPrompt: `You are a friendly and approachable career advisor. Use a casual, conversational tone. Be encouraging and supportive. Make the conversation feel like talking to a helpful friend who genuinely cares about the user's future.`,
+  },
+  direct: {
+    name: 'Direct',
+    description: 'Straightforward, no-nonsense, and factual',
+    systemPrompt: `You are a direct and efficient career advisor. Be straightforward, factual, and concise. Focus on clear information and actionable insights without unnecessary fluff.`,
+  },
+  counsellor: {
+    name: 'Counsellor',
+    description: 'Empathetic, supportive, and guidance-focused',
+    systemPrompt: `You are an empathetic career counsellor. Use a warm, supportive, and understanding tone. Help the user explore their options thoughtfully and provide gentle guidance. Show empathy and understanding for their situation.`,
+  },
+  coach: {
+    name: 'Coach',
+    description: 'Motivational, action-oriented, and goal-focused',
+    systemPrompt: `You are a motivational career coach. Use an energetic, action-oriented tone. Focus on goals, action plans, and motivation. Help the user see their potential and create a clear path forward.`,
+  },
+  analyst: {
+    name: 'Analyst',
+    description: 'Data-driven, structured, and detailed',
+    systemPrompt: `You are a data-driven career analyst. Use a structured, analytical approach. Provide detailed insights, data-backed recommendations, and comprehensive analysis. Be thorough and precise in your assessments.`,
+  },
+};
+
+const ANALYSIS_METHODS = {
+  structured: {
+    name: 'Structured Analysis',
+    description: 'Extract courses, grades, and achievements in a structured format',
+    instruction: `Analyze the transcript and extract:
+- All courses with their grades
+- Academic achievements and honors
+- GPA or academic standing
+- Areas of study/majors
+- Any notable patterns or trends`,
+  },
+  strengths: {
+    name: 'Strengths & Weaknesses',
+    description: 'Identify strong, weak, and mid-performing areas',
+    instruction: `Analyze the transcript to identify:
+- Strong points: Subjects/courses where performance is excellent
+- Weak points: Areas needing improvement
+- Mid points: Average or developing areas
+- Provide specific examples and actionable insights for each category`,
+  },
+  career: {
+    name: 'Career Path Suggestions',
+    description: 'Generate career path recommendations based on transcript',
+    instruction: `Based on the transcript analysis, provide:
+- Recommended career paths that align with academic strengths
+- Industry sectors that match the user's profile
+- Job roles that would be a good fit
+- Growth opportunities and career progression paths`,
+  },
+  resources: {
+    name: 'Resources & Schools',
+    description: 'Curate learning resources and school/course recommendations',
+    instruction: `Provide comprehensive recommendations:
+- Online learning resources (courses, platforms, certifications)
+- Schools and universities with relevant programs
+- Specific courses or programs that would benefit the user
+- Skill development opportunities
+- Include links or specific names when possible`,
+  },
+  combinations: {
+    name: 'Skill Combinations',
+    description: 'Suggest optimal skill combinations based on transcript',
+    instruction: `Analyze the transcript and suggest:
+- Optimal skill combinations based on academic performance
+- Complementary skills that would enhance the user's profile
+- Unique value propositions from combining different strengths
+- Strategic skill development paths`,
+  },
+};
+
+/**
+ * Builds a system prompt based on tone
+ * @param {string} tone - The selected tone (casual, direct, counsellor, coach, analyst)
+ * @returns {string} - System prompt
+ */
+export function buildSystemPrompt(tone = 'casual') {
+  const toneConfig = TONES[tone.toLowerCase()] || TONES.casual;
+  return toneConfig.systemPrompt;
+}
+
+/**
+ * Builds analysis instructions based on method
+ * @param {string} method - The selected analysis method
+ * @returns {string} - Analysis instructions
+ */
+export function buildAnalysisInstructions(method) {
+  if (!method) {
+    return 'Analyze the transcript comprehensively and provide detailed insights.';
+  }
+
+  const methodConfig = ANALYSIS_METHODS[method.toLowerCase()];
+  if (!methodConfig) {
+    return 'Analyze the transcript comprehensively and provide detailed insights.';
+  }
+
+  return methodConfig.instruction;
+}
+
+/**
+ * Builds the initial analysis prompt (structured breakdown)
+ * @param {string} transcriptText - Extracted transcript text
+ * @param {string} additionalContext - Additional context from user
+ * @param {string} analysisMethod - Selected analysis method
+ * @returns {string} - Complete user prompt for initial analysis
+ */
+export function buildInitialAnalysisPrompt(transcriptText, additionalContext = '', analysisMethod = '') {
+  let prompt = '';
+
+  if (transcriptText && transcriptText.trim()) {
+    prompt += `TRANSCRIPT CONTENT:\n${transcriptText.trim()}\n\n`;
+  }
+
+  if (additionalContext && additionalContext.trim()) {
+    prompt += `ADDITIONAL CONTEXT:\n${additionalContext.trim()}\n\n`;
+  }
+
+  if (analysisMethod) {
+    const instructions = buildAnalysisInstructions(analysisMethod);
+    prompt += `ANALYSIS REQUIREMENTS:\n${instructions}\n\n`;
+  }
+
+  prompt += `Please provide a comprehensive analysis and guidance based on the above information. Include:
+- Key insights from the transcript
+- Strengths, weaknesses, and areas for development
+- Career path suggestions
+- Recommended resources and educational opportunities
+- Actionable next steps
+
+Format your response with clear sections using markdown headers (##, ###) and bullet points for easy reading.`;
+
+  return prompt.trim();
+}
+
+/**
+ * Builds a conversational follow-up prompt
+ * @param {string} userQuestion - The user's follow-up question
+ * @returns {string} - Conversational prompt
+ */
+export function buildFollowUpPrompt(userQuestion) {
+  return `Based on the previous analysis of my transcript, ${userQuestion.trim()}
+
+Please provide a conversational response that directly addresses my question. Reference relevant information from the previous analysis when helpful, but focus on answering my specific question in a natural, helpful way.`;
+}
+
+/**
+ * Builds complete messages array for API
+ * @param {string} transcriptText - Extracted transcript text
+ * @param {string} additionalContext - Additional context
+ * @param {string} tone - Selected tone
+ * @param {string} analysisMethod - Selected analysis method
+ * @param {Array} conversationHistory - Previous messages (optional)
+ * @param {boolean} isFollowUp - Whether this is a follow-up question
+ * @returns {Array} - Array of message objects for API
+ */
+export function buildMessages(transcriptText, additionalContext = '', tone = 'casual', analysisMethod = '', conversationHistory = [], isFollowUp = false) {
+  const messages = [];
+
+  // Add system prompt with enhanced instructions for follow-ups
+  let systemPrompt = buildSystemPrompt(tone);
+  
+  if (isFollowUp && conversationHistory.length > 0) {
+    // For follow-ups, emphasize conversational nature
+    systemPrompt += `\n\nIMPORTANT CONTEXT: This is a follow-up question. The user has already received their initial comprehensive transcript analysis with all the breakdowns, strengths, weaknesses, career paths, and resources. 
+
+Your role now is to have a natural, conversational dialogue. Do NOT:
+- Repeat the full analysis or breakdown
+- List all strengths/weaknesses again
+- Provide another comprehensive overview
+
+DO:
+- Answer their specific question directly
+- Reference relevant parts of the previous analysis when helpful
+- Have a natural conversation matching the selected tone
+- Be concise and focused on what they're asking
+- Use the conversation history to understand context`;
+  } else {
+    // For initial analysis, emphasize structured breakdown
+    systemPrompt += `\n\nIMPORTANT: This is the initial transcript analysis. Provide a comprehensive, well-structured breakdown with clear sections using markdown formatting. Include all key insights, strengths, weaknesses, career suggestions, and resources.`;
+  }
+  
+  messages.push({
+    role: 'system',
+    content: systemPrompt,
+  });
+
+  // Add conversation history (if any)
+  if (conversationHistory && conversationHistory.length > 0) {
+    messages.push(...conversationHistory);
+  }
+
+  // Add current user prompt
+  let userPrompt;
+  if (isFollowUp) {
+    // For follow-ups, use conversational prompt
+    userPrompt = buildFollowUpPrompt(additionalContext);
+  } else {
+    // For initial analysis, use structured prompt
+    userPrompt = buildInitialAnalysisPrompt(transcriptText, additionalContext, analysisMethod);
+  }
+  
+  if (userPrompt) {
+    messages.push({
+      role: 'user',
+      content: userPrompt,
+    });
+  }
+
+  return messages;
+}
+
+/**
+ * Gets available tones
+ * @returns {Array} - Array of tone objects
+ */
+export function getAvailableTones() {
+  return Object.keys(TONES).map(key => ({
+    value: key,
+    ...TONES[key],
+  }));
+}
+
+/**
+ * Gets available analysis methods
+ * @returns {Array} - Array of analysis method objects
+ */
+export function getAvailableAnalysisMethods() {
+  return Object.keys(ANALYSIS_METHODS).map(key => ({
+    value: key,
+    ...ANALYSIS_METHODS[key],
+  }));
+}
+
