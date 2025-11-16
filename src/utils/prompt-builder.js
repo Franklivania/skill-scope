@@ -132,14 +132,41 @@ export function buildInitialAnalysisPrompt(transcriptText, additionalContext = '
     prompt += `ANALYSIS REQUIREMENTS:\n${instructions}\n\n`;
   }
 
-  prompt += `Please provide a comprehensive analysis and guidance based on the above information. Include:
-- Key insights from the transcript
-- Strengths, weaknesses, and areas for development
-- Career path suggestions
-- Recommended resources and educational opportunities
-- Actionable next steps
+  prompt += `Please provide a comprehensive analysis and guidance based on the above information.
 
-Format your response with clear sections using markdown headers (##, ###) and bullet points for easy reading.`;
+OUTPUT CONTRACT (STRICT — do not omit any section):
+
+## Comprehensive Analysis and Guidance
+
+### Key Insights from the Transcript
+- Provide at least 3 concrete bullet points summarizing the student's overall performance.
+
+### Strengths
+- Provide at least 2 bullets naming specific subjects/areas and why they are strengths.
+
+### Weaknesses
+- Provide at least 2 bullets naming specific subjects/areas and what needs improvement.
+
+### Areas for Development
+- Provide at least 2 bullets with targeted skills or knowledge gaps to improve.
+
+### Career Path Suggestions
+- Provide at least 2 bullets naming potential roles/paths and the rationale from the transcript.
+
+### Recommended Resources and Educational Opportunities
+- Provide at least 3 bullets. Name specific courses, platforms, schools, or programs (with brief reason).
+
+### Actionable Next Steps
+- Provide at least 3 concise, personalized actions tied to their transcript evidence.
+
+### Conclusion
+- 2–3 sentence wrap-up referencing the student's profile.
+
+RENDERING RULES:
+- Use markdown headers (##, ###) and bullet points (- ) exactly as shown.
+- NEVER leave a section blank. If a section truly has no evidence, write: "- Not found in transcript; recommend collecting this information." but still include at least one bullet.
+- Prefer subject names and scores found in the transcript. If only partial info exists, state it clearly.
+- Keep the tone aligned with the selected style; be specific and user-focused.`;
 
   return prompt.trim();
 }

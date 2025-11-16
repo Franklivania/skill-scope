@@ -25,42 +25,85 @@ export function parseMarkdown(text) {
 
     // Headers (# ## ### #### ##### ######) - check first line only
     const firstLine = trimmedBlock.split('\n')[0].trim();
-    const headerMatch = firstLine.match(/^(#{1,6})\s+(.+)$/);
-    if (headerMatch && trimmedBlock.split('\n').length === 1) {
+    // Support headers with or without a space after #'s
+    const headerMatch = firstLine.match(/^(#{1,6})\s*(.+)$/);
+    if (headerMatch) {
       const level = headerMatch[1].length;
       const headerText = headerMatch[2];
       const HeaderTag = `h${Math.min(level, 6)}`;
       
       // Create header element based on level
       const headerProps = {
-        key: `header-${blockIdx}`,
         className: `font-bold mb-3 mt-4 ${getHeaderClass(level)}`,
         style: { color: 'hsl(var(--color-text))' },
         children: parseInlineMarkdown(headerText),
       };
 
-      switch (level) {
-        case 1:
-          elements.push(<h1 {...headerProps} />);
-          break;
-        case 2:
-          elements.push(<h2 {...headerProps} />);
-          break;
-        case 3:
-          elements.push(<h3 {...headerProps} />);
-          break;
-        case 4:
-          elements.push(<h4 {...headerProps} />);
-          break;
-        case 5:
-          elements.push(<h5 {...headerProps} />);
-          break;
-        case 6:
-          elements.push(<h6 {...headerProps} />);
-          break;
-        default:
-          elements.push(<h2 {...headerProps} />);
+      elements.push(<HeaderTag key={`header-${blockIdx}`} {...headerProps} />);
+
+      // If there is additional content after the header on subsequent lines,
+      // parse that content as its own block (lists/paragraphs).
+      const newlineIndex = trimmedBlock.indexOf('\n');
+      if (newlineIndex !== -1) {
+        const rest = trimmedBlock.slice(newlineIndex + 1).trim();
+        if (rest) {
+          // Try list first
+          const nestedList = detectList(rest);
+          if (nestedList) {
+            const { type, items } = nestedList;
+            const ListTag = type === 'ordered' ? 'ol' : 'ul';
+            const listClass = type === 'ordered' ? 'list-decimal' : 'list-disc';
+
+            const renderItems = (nodes, parentIdxPrefix = '') => (
+              nodes.map((node, idx) => {
+                const key = `${parentIdxPrefix}${idx}`;
+                return (
+                  <li key={key} className="pl-2">
+                    {parseInlineMarkdown((node.text || '').trim())}
+                    {node.children && node.children.length > 0 && (
+                      <ul className="list-disc list-inside my-2 ml-6 space-y-1">
+                        {renderItems(node.children, `${key}-`)}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })
+            );
+
+            elements.push(
+              <ListTag
+                key={`list-after-header-${blockIdx}`}
+                className={`${listClass} list-inside my-3 space-y-2 ml-4`}
+              >
+                {renderItems(items)}
+              </ListTag>
+            );
+          } else {
+            // Fallback: render as paragraph with preserved line breaks
+            const lines = rest.split('\n');
+            const paragraphContent = lines
+              .filter(line => line.trim() !== '')
+              .map((line, lineIdx, filteredLines) => {
+                const parsed = parseInlineMarkdown(line);
+                return (
+                  <span key={`after-header-${blockIdx}-${lineIdx}`}>
+                    {parsed}
+                    {lineIdx < filteredLines.length - 1 && <br />}
+                  </span>
+                );
+              });
+
+            if (paragraphContent.length > 0) {
+              elements.push(
+                <p key={`para-after-header-${blockIdx}`} className="my-3 leading-relaxed">
+                  {paragraphContent}
+                </p>
+              );
+            }
+          }
+        }
       }
+
       return;
     }
 
@@ -137,26 +180,38 @@ export function parseMarkdown(text) {
     }
 
     // Lists (unordered and ordered) - improved detection
-    const listMatch = detectList(trimmedBlock);
-    if (listMatch) {
-      const { type, items } = listMatch;
-      const ListTag = type === 'ordered' ? 'ol' : 'ul';
-      const listClass = type === 'ordered' ? 'list-decimal' : 'list-disc';
+  const listMatch = detectList(trimmedBlock);
+  if (listMatch) {
+    const { type, items } = listMatch;
+    const ListTag = type === 'ordered' ? 'ol' : 'ul';
+    const listClass = type === 'ordered' ? 'list-decimal' : 'list-disc';
 
-      elements.push(
-        <ListTag
-          key={`list-${blockIdx}`}
-          className={`${listClass} list-inside my-3 space-y-2 ml-4`}
-        >
-          {items.map((item, itemIdx) => (
-            <li key={itemIdx} className="pl-2">
-              {parseInlineMarkdown(item.trim())}
-            </li>
-          ))}
-        </ListTag>
-      );
-      return;
-    }
+    const renderItems = (nodes, parentIdxPrefix = '') => (
+      nodes.map((node, idx) => {
+        const key = `${parentIdxPrefix}${idx}`;
+        return (
+          <li key={key} className="pl-2">
+            {parseInlineMarkdown((node.text || '').trim())}
+            {node.children && node.children.length > 0 && (
+              <ul className="list-disc list-inside my-2 ml-6 space-y-1">
+                {renderItems(node.children, `${key}-`)}
+              </ul>
+            )}
+          </li>
+        );
+      })
+    );
+
+    elements.push(
+      <ListTag
+        key={`list-${blockIdx}`}
+        className={`${listClass} list-inside my-3 space-y-2 ml-4`}
+      >
+        {renderItems(items)}
+      </ListTag>
+    );
+    return;
+  }
 
     // Regular paragraph - handle inline markdown and preserve line breaks
     const lines = trimmedBlock.split('\n');
@@ -201,6 +256,8 @@ function parseInlineMarkdown(text) {
   const patterns = [
     { regex: /`([^`\n]+)`/g, type: 'code' },
     { regex: /\[([^\]]+)\]\(([^)]+)\)/g, type: 'link' },
+    // Auto-link plain URLs not already part of markdown links
+    { regex: /\b(https?:\/\/[^\s<>()]+)\b/g, type: 'autolink' },
     { regex: /\*\*([^*\n]+?)\*\*/g, type: 'bold' },
     { regex: /\*([^*\s\n][^*\n]*?[^*\s\n]|[^*\s\n])\*/g, type: 'italic' },
   ];
@@ -288,6 +345,20 @@ function parseInlineMarkdown(text) {
           </a>
         );
         break;
+      case 'autolink':
+        parts.push(
+          <a
+            key={`auto-${keyCounter++}`}
+            href={match.content}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:opacity-80 transition-opacity"
+            style={{ color: 'hsl(var(--color-primary))' }}
+          >
+            {match.content}
+          </a>
+        );
+        break;
     }
 
     currentIndex = match.end;
@@ -307,62 +378,77 @@ function parseInlineMarkdown(text) {
  * @returns {Object|null} - List info or null
  */
 function detectList(block) {
-  const lines = block.split('\n').filter(line => line.trim());
+  const lines = block
+    .split('\n')
+    .filter(line => line.trim().length > 0);
   if (lines.length === 0) return null;
 
-  // Check for unordered list (- or *)
-  const unorderedMatch = lines[0].match(/^[-*]\s+(.+)$/);
-  if (unorderedMatch) {
-    const items = [];
-    for (const line of lines) {
-      const match = line.match(/^[-*]\s+(.+)$/);
-      if (match) {
-        items.push(match[1]);
-      } else {
-        // If we hit a non-list line, stop (unless it's indented continuation)
-        if (line.match(/^\s{2,}/)) {
-          // Continuation of previous item
-          if (items.length > 0) {
-            items[items.length - 1] += ' ' + line.trim();
-          }
-        } else {
-          break;
-        }
+  // Determine list type from first token
+  // Support -, *, + for unordered; 1., 1), 1- for ordered
+  const isUnordered = /^[-*+]\s+/.test(lines[0]);
+  const isOrdered = /^\d+([.)-])\s+/.test(lines[0]);
+  if (!isUnordered && !isOrdered) return null;
+
+  const root = [];
+  const stack = []; // stack of {indent, nodeArray}
+
+  const getIndent = (line) => {
+    const match = line.match(/^(\s*)/);
+    return match ? match[1].length : 0;
+  };
+
+  const parseItemText = (line) => {
+    // remove bullet/token and leading spaces
+    return line
+      .replace(/^(\s*)([-*+]|\d+([.)-]))\s+/, '')
+      .trim();
+  };
+
+  lines.forEach((line) => {
+    const indent = getIndent(line);
+    const isBullet = /^(\s*)([-*+]|\d+([.)-]))\s+/.test(line);
+
+    if (!isBullet) {
+      // Treat as continuation text for the last item at current depth
+      const currentList = stack.length > 0 ? stack[stack.length - 1].nodeArray : root;
+      if (currentList.length > 0) {
+        const last = currentList[currentList.length - 1];
+        last.text = `${last.text} ${line.trim()}`.trim();
       }
+      return;
     }
 
-    if (items.length > 0) {
-      return { type: 'unordered', items };
-    }
-  }
-
-  // Check for ordered list (1. 2. 3.)
-  const orderedMatch = lines[0].match(/^\d+\.\s+(.+)$/);
-  if (orderedMatch) {
-    const items = [];
-    for (const line of lines) {
-      const match = line.match(/^\d+\.\s+(.+)$/);
-      if (match) {
-        items.push(match[1]);
-      } else {
-        // If we hit a non-list line, stop (unless it's indented continuation)
-        if (line.match(/^\s{2,}/)) {
-          // Continuation of previous item
-          if (items.length > 0) {
-            items[items.length - 1] += ' ' + line.trim();
-          }
-        } else {
-          break;
-        }
-      }
+    // Adjust stack to current indent (allow simple 2-space multiples)
+    while (stack.length > 0 && indent < stack[stack.length - 1].indent) {
+      stack.pop();
     }
 
-    if (items.length > 0) {
-      return { type: 'ordered', items };
+    let parentArray;
+    if (stack.length === 0 || indent === stack[stack.length - 1].indent) {
+      parentArray = stack.length === 0 ? root : stack[stack.length - 1].nodeArray;
+    } else if (indent > stack[stack.length - 1].indent) {
+      // new nested level
+      const lastAtPrev = stack[stack.length - 1].nodeArray[stack[stack.length - 1].nodeArray.length - 1];
+      lastAtPrev.children = lastAtPrev.children || [];
+      parentArray = lastAtPrev.children;
+      stack.push({ indent, nodeArray: parentArray });
+    } else {
+      parentArray = root;
     }
-  }
 
-  return null;
+    parentArray.push({ text: parseItemText(line), children: [] });
+    if (stack.length === 0) {
+      stack.push({ indent, nodeArray: root });
+    }
+  });
+
+  const clean = (nodes) => nodes.map(n => ({
+    text: n.text,
+    children: (n.children && n.children.length > 0) ? clean(n.children) : [],
+  }));
+
+  const items = clean(root);
+  return { type: isOrdered ? 'ordered' : 'unordered', items };
 }
 
 /**

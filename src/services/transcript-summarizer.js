@@ -5,7 +5,7 @@
 
 import { sendGroqRequest } from './groq-client';
 
-const MAX_SUMMARY_LENGTH = 2000; // Target length for summary in characters
+const MAX_SUMMARY_LENGTH = 4000; // Target length for summary in characters
 const MAX_INPUT_LENGTH = 50000; // Max characters to send to summarization API
 
 /**

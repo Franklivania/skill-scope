@@ -126,8 +126,8 @@ function App() {
                   onClick={() => setShowInputs(!showInputs)}
                   className="text-sm px-3 py-1 rounded"
                   style={{
-                    backgroundColor: `hsl(var(--color-accent))`,
-                    color: `hsl(var(--color-text))`,
+                    backgroundColor: `hsl(var(--color-accent-dark))`,
+                    color: `hsl(var(--color-primary-dark))`,
                   }}
                 >
                   {showInputs ? 'Hide Inputs' : 'Show Inputs'}
