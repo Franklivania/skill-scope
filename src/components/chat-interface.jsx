@@ -13,8 +13,8 @@ export default function ChatInterface({ messages, isStreaming, streamingText }) 
   }, [messages, streamingText]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="w-full flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-1.5 md:p-4 space-y-4">
         {messages.length === 0 && !isStreaming && (
           <div className="text-center py-8" style={{ color: 'hsl(var(--color-text-muted))' }}>
             <p>No messages yet. Upload a transcript to get started!</p>
@@ -24,10 +24,10 @@ export default function ChatInterface({ messages, isStreaming, streamingText }) 
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`w-full flex ${message.role === 'user' ? 'justify-end' : 'md:justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-3 ${
+              className={`w-full md:max-w-[80%] rounded-lg px-4 py-3 ${
                 message.role === 'user'
                   ? 'rounded-br-none'
                   : 'rounded-bl-none'
@@ -62,7 +62,7 @@ export default function ChatInterface({ messages, isStreaming, streamingText }) 
         ))}
 
         {isStreaming && streamingText && (
-          <div className="flex justify-start">
+          <div className="w-full flex md:justify-start">
             <div
               className="max-w-[80%] rounded-lg rounded-bl-none px-4 py-3"
               style={{
