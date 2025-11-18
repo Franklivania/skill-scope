@@ -138,35 +138,72 @@ OUTPUT CONTRACT (STRICT — do not omit any section):
 
 ## Comprehensive Analysis and Guidance
 
-### Key Insights from the Transcript
+### 1. PDF Report Summary
+- Extract and summarize key information from the PDF document provided.
+- Highlight important details, achievements, and relevant data points from the PDF.
+
+### 2. Course Classification for Masters Programs
+- Classify all courses from the transcript according to what one can do in Masters programs.
+- Group courses by relevant Masters degree fields/disciplines.
+- Identify which courses align with potential Masters specializations.
+
+### 3. Summarized Course Table
+- Provide a comprehensive table summarizing all courses from the transcript.
+- Include columns for: Course Name, Grade/Score, Classification (for Masters), Strength Indicator (Strong/Weak/Average).
+- Clearly spot and mark weak courses and strong courses.
+- Calculate averages where applicable.
+
+### 4. Highest Average Course Analysis
+- Identify the course or course category with the highest average performance.
+- Based on this highest performing area, provide detailed recommendations:
+
+#### Masters-Level Course Recommendations
+- List specific Masters-level courses the person can offer/undertake based on their strongest area.
+- Explain how their strong performance translates to Masters readiness.
+
+#### Resources and Tools for Study
+- Recommend specific resources (books, online courses, platforms, tools) the person can study to further develop their strongest area.
+- Include practical learning resources and study materials.
+
+#### University Recommendations
+- List universities that best offer courses/programs in the person's strongest area.
+- Separate recommendations into:
+  - Universities with scholarship opportunities (include scholarship names/types if known)
+  - Universities without scholarship requirements (non-scholarship options)
+- Include brief rationale for each recommendation.
+
+### 5. Key Insights from the Transcript
 - Provide at least 3 concrete bullet points summarizing the student's overall performance.
 
-### Strengths
+### 6. Strengths
 - Provide at least 2 bullets naming specific subjects/areas and why they are strengths.
 
-### Weaknesses
+### 7. Weaknesses
 - Provide at least 2 bullets naming specific subjects/areas and what needs improvement.
 
-### Areas for Development
+### 8. Areas for Development
 - Provide at least 2 bullets with targeted skills or knowledge gaps to improve.
 
-### Career Path Suggestions
+### 9. Career Path Suggestions
 - Provide at least 2 bullets naming potential roles/paths and the rationale from the transcript.
 
-### Recommended Resources and Educational Opportunities
+### 10. Recommended Resources and Educational Opportunities
 - Provide at least 3 bullets. Name specific courses, platforms, schools, or programs (with brief reason).
 
-### Actionable Next Steps
+### 11. Actionable Next Steps
 - Provide at least 3 concise, personalized actions tied to their transcript evidence.
 
-### Conclusion
+### 12. Conclusion
 - 2–3 sentence wrap-up referencing the student's profile.
 
 RENDERING RULES:
 - Use markdown headers (##, ###) and bullet points (- ) exactly as shown.
+- Use markdown tables for the course summary table (| Course | Grade | Classification | Strength |).
 - NEVER leave a section blank. If a section truly has no evidence, write: "- Not found in transcript; recommend collecting this information." but still include at least one bullet.
 - Prefer subject names and scores found in the transcript. If only partial info exists, state it clearly.
-- Keep the tone aligned with the selected style; be specific and user-focused.`;
+- Keep the tone aligned with the selected style; be specific and user-focused.
+- For the course table, use clear indicators like "Strong", "Weak", or "Average" in the Strength column.
+- Ensure all Masters-related recommendations are directly tied to the highest average course/category identified.`;
 
   return prompt.trim();
 }
@@ -212,6 +249,9 @@ DO:
 - Reference relevant parts of the previous analysis when helpful
 - Have a natural conversation matching the selected tone
 - Be concise and focused on what they're asking
+- ONLY ANSWER QUESTIONS RELATED TO THE TRANSCRIPT AND ADDITIONAL CONTEXT IF ANY. If a question asked by the user is not related to the transcript or additional context, politely decline to answer and suggest they ask a question that is related to the transcript or additional context.
+- DO NOT HALLUCINATE ANY INFORMATION. If you don't know the answer, politely decline to answer and suggest they ask a question that is related to the transcript.
+-INSGIGHTS SHOULD BE DATA DRIVEN AND BASED ON THE TRANSCRIPT AND ADDITIONAL CONTEXT IF ANY. Avoid personal opinions, biases or subjecttive judgements and statements.
 - Use the conversation history to understand context`;
   } else {
     // For initial analysis, emphasize structured breakdown
