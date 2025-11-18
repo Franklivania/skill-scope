@@ -15,13 +15,190 @@ export function parseMarkdown(text) {
   // Normalize line endings
   text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   
+  // Pre-process: Extract tables from text and replace with placeholders
+  const tablePlaceholders = [];
+  // More flexible regex: matches header row, separator row, and data rows
+  const tableRegex = /(\|[^\n]+\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g;
+  let processedText = text;
+  let match;
+  const matches = [];
+  
+  // Collect all matches first
+  while ((match = tableRegex.exec(text)) !== null) {
+    matches.push({
+      fullMatch: match[0],
+      index: match.index,
+      tableBlock: match[1].trim(),
+    });
+  }
+  
+  // Process matches in reverse order to preserve indices
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const match = matches[i];
+    const placeholder = `__TABLE_PLACEHOLDER_${i}__`;
+    tablePlaceholders[i] = { placeholder, tableBlock: match.tableBlock };
+    processedText = processedText.substring(0, match.index) + 
+                   `\n\n${placeholder}\n\n` + 
+                   processedText.substring(match.index + match.fullMatch.length);
+  }
+  
   // Split by double newlines to get paragraphs/blocks
-  const blocks = text.split(/\n\n+/);
+  const blocks = processedText.split(/\n\n+/);
   const elements = [];
 
   blocks.forEach((block, blockIdx) => {
     const trimmedBlock = block.trim();
     if (!trimmedBlock) return;
+
+    // Check if this is a table placeholder
+    const placeholderMatch = trimmedBlock.match(/^__TABLE_PLACEHOLDER_(\d+)__$/);
+    if (placeholderMatch) {
+      const placeholderIdx = parseInt(placeholderMatch[1], 10);
+      const tableData = tablePlaceholders[placeholderIdx];
+      if (tableData) {
+        const tableMatch = detectTable(tableData.tableBlock);
+        if (tableMatch) {
+          const { headers, rows } = tableMatch;
+          elements.push(
+            <div
+              key={`table-placeholder-${placeholderIdx}`}
+              className="my-6 overflow-x-auto rounded-lg"
+              style={{
+                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+              }}
+            >
+              <table
+                className="w-full border-collapse min-w-full"
+                style={{
+                  backgroundColor: 'hsl(var(--color-background))',
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: 'hsl(var(--color-surface))',
+                      borderBottom: '2px solid hsl(var(--color-border))',
+                    }}
+                  >
+                    {headers.map((header, headerIdx) => (
+                      <th
+                        key={`header-${headerIdx}`}
+                        className="px-5 py-3.5 text-left font-semibold text-sm uppercase tracking-wide"
+                        style={{
+                          borderRight: headerIdx < headers.length - 1 
+                            ? '1px solid hsl(var(--color-border))' 
+                            : 'none',
+                          color: 'hsl(var(--color-text))',
+                        }}
+                      >
+                        {parseInlineMarkdown(header.trim())}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, rowIdx) => (
+                    <tr
+                      key={`row-${rowIdx}`}
+                      className="transition-colors duration-150"
+                      style={{
+                        backgroundColor: rowIdx % 2 === 0 
+                          ? 'hsl(var(--color-background))' 
+                          : 'hsl(var(--color-surface))',
+                        borderBottom: rowIdx < rows.length - 1 
+                          ? '1px solid hsl(var(--color-border))' 
+                          : 'none',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--color-surface))';
+                        e.currentTarget.style.opacity = '0.95';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = rowIdx % 2 === 0 
+                          ? 'hsl(var(--color-background))' 
+                          : 'hsl(var(--color-surface))';
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    >
+                      {row.map((cell, cellIdx) => {
+                        const cellContent = parseInlineMarkdown(cell.trim());
+                        const strengthValue = cell.trim().toLowerCase();
+                        const isStrengthColumn = headers[cellIdx]?.toLowerCase().includes('strength');
+                        
+                        let strengthClass = '';
+                        let strengthStyle = {};
+                        let badgeStyle = null;
+                        
+                        if (isStrengthColumn) {
+                          if (strengthValue === 'strong') {
+                            strengthClass = 'font-semibold';
+                            badgeStyle = {
+                              display: 'inline-block',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '0.375rem',
+                              backgroundColor: 'hsl(142, 71%, 45%, 0.1)',
+                              color: 'hsl(142, 71%, 45%)',
+                              fontWeight: '600',
+                              fontSize: '0.75rem',
+                            };
+                          } else if (strengthValue === 'weak') {
+                            strengthClass = 'font-semibold';
+                            badgeStyle = {
+                              display: 'inline-block',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '0.375rem',
+                              backgroundColor: 'hsl(0, 84%, 60%, 0.1)',
+                              color: 'hsl(0, 84%, 60%)',
+                              fontWeight: '600',
+                              fontSize: '0.75rem',
+                            };
+                          } else if (strengthValue === 'average') {
+                            strengthClass = 'font-semibold';
+                            badgeStyle = {
+                              display: 'inline-block',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '0.375rem',
+                              backgroundColor: 'hsl(38, 92%, 50%, 0.1)',
+                              color: 'hsl(38, 92%, 50%)',
+                              fontWeight: '600',
+                              fontSize: '0.75rem',
+                            };
+                          }
+                        }
+                        
+                        return (
+                          <td
+                            key={`cell-${rowIdx}-${cellIdx}`}
+                            className={`px-5 py-3.5 text-sm ${strengthClass}`}
+                            style={{
+                              borderRight: cellIdx < row.length - 1 
+                                ? '1px solid hsl(var(--color-border))' 
+                                : 'none',
+                              color: isStrengthColumn && badgeStyle 
+                                ? badgeStyle.color 
+                                : 'hsl(var(--color-text))',
+                            }}
+                          >
+                            {isStrengthColumn && badgeStyle ? (
+                              <span style={badgeStyle}>
+                                {cell.trim()}
+                              </span>
+                            ) : (
+                              cellContent
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+      }
+      return;
+    }
 
     // Headers (# ## ### #### ##### ######) - check first line only
     const firstLine = trimmedBlock.split('\n')[0].trim();
@@ -175,6 +352,159 @@ export function parseMarkdown(text) {
         >
           {parseInlineMarkdown(quoteText)}
         </blockquote>
+      );
+      return;
+    }
+
+    // Tables (| col1 | col2 |) - check before other content
+    const tableMatch = detectTable(trimmedBlock);
+    if (tableMatch) {
+      const { headers, rows } = tableMatch;
+      elements.push(
+        <div
+          key={`table-${blockIdx}`}
+          className="my-6 overflow-x-auto rounded-lg"
+          style={{
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          <table
+            className="w-full border-collapse min-w-full"
+            style={{
+              backgroundColor: 'hsl(var(--color-background))',
+            }}
+          >
+            <thead>
+              <tr
+                style={{
+                  backgroundColor: 'hsl(var(--color-surface))',
+                  borderBottom: '2px solid hsl(var(--color-border))',
+                }}
+              >
+                {headers.map((header, headerIdx) => (
+                  <th
+                    key={`header-${headerIdx}`}
+                    className="px-5 py-3.5 text-left font-semibold text-sm uppercase tracking-wide"
+                    style={{
+                      borderRight: headerIdx < headers.length - 1 
+                        ? '1px solid hsl(var(--color-border))' 
+                        : 'none',
+                      color: 'hsl(var(--color-text))',
+                    }}
+                  >
+                    {parseInlineMarkdown(header.trim())}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIdx) => (
+                <tr
+                  key={`row-${rowIdx}`}
+                  className="transition-colors duration-150"
+                  style={{
+                    backgroundColor: rowIdx % 2 === 0 
+                      ? 'hsl(var(--color-background))' 
+                      : 'hsl(var(--color-surface))',
+                    borderBottom: rowIdx < rows.length - 1 
+                      ? '1px solid hsl(var(--color-border))' 
+                      : 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--color-surface))';
+                    e.currentTarget.style.opacity = '0.95';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = rowIdx % 2 === 0 
+                      ? 'hsl(var(--color-background))' 
+                      : 'hsl(var(--color-surface))';
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  {row.map((cell, cellIdx) => {
+                    const cellContent = parseInlineMarkdown(cell.trim());
+                    const strengthValue = cell.trim().toLowerCase();
+                    const isStrengthColumn = headers[cellIdx]?.toLowerCase().includes('strength');
+                    
+                    // Apply strength-based styling with badges
+                    let strengthClass = '';
+                    let strengthStyle = {};
+                    let badgeStyle = null;
+                    
+                    if (isStrengthColumn) {
+                      if (strengthValue === 'strong') {
+                        strengthClass = 'font-semibold';
+                        strengthStyle = { 
+                          color: 'hsl(142, 71%, 45%)',
+                        };
+                        badgeStyle = {
+                          display: 'inline-block',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'hsl(142, 71%, 45%, 0.1)',
+                          color: 'hsl(142, 71%, 45%)',
+                          fontWeight: '600',
+                          fontSize: '0.75rem',
+                        };
+                      } else if (strengthValue === 'weak') {
+                        strengthClass = 'font-semibold';
+                        strengthStyle = { 
+                          color: 'hsl(0, 84%, 60%)',
+                        };
+                        badgeStyle = {
+                          display: 'inline-block',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'hsl(0, 84%, 60%, 0.1)',
+                          color: 'hsl(0, 84%, 60%)',
+                          fontWeight: '600',
+                          fontSize: '0.75rem',
+                        };
+                      } else if (strengthValue === 'average') {
+                        strengthClass = 'font-semibold';
+                        strengthStyle = { 
+                          color: 'hsl(38, 92%, 50%)',
+                        };
+                        badgeStyle = {
+                          display: 'inline-block',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'hsl(38, 92%, 50%, 0.1)',
+                          color: 'hsl(38, 92%, 50%)',
+                          fontWeight: '600',
+                          fontSize: '0.75rem',
+                        };
+                      }
+                    }
+                    
+                    return (
+                      <td
+                        key={`cell-${rowIdx}-${cellIdx}`}
+                        className={`px-5 py-3.5 text-sm ${strengthClass}`}
+                        style={{
+                          borderRight: cellIdx < row.length - 1 
+                            ? '1px solid hsl(var(--color-border))' 
+                            : 'none',
+                          color: isStrengthColumn && strengthStyle.color 
+                            ? strengthStyle.color 
+                            : 'hsl(var(--color-text))',
+                        }}
+                      >
+                        {isStrengthColumn && badgeStyle ? (
+                          <span style={badgeStyle}>
+                            {cell.trim()}
+                          </span>
+                        ) : (
+                          cellContent
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       );
       return;
     }
@@ -370,6 +700,88 @@ function parseInlineMarkdown(text) {
   }
 
   return parts.length > 0 ? (parts.length === 1 && typeof parts[0] === 'string' ? parts[0] : parts) : text;
+}
+
+/**
+ * Detects if a block is a markdown table and extracts data
+ * @param {string} block - Text block to check
+ * @returns {Object|null} - Table data with headers and rows, or null
+ */
+function detectTable(block) {
+  const lines = block.split('\n').map(line => line.trim());
+  if (lines.length < 2) return null;
+
+  // Find the start of a potential table (line with |)
+  let tableStartIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('|') && lines[i].split('|').length >= 2) {
+      tableStartIdx = i;
+      break;
+    }
+  }
+
+  if (tableStartIdx === -1) return null;
+
+  // Check if next line is a separator (more flexible matching)
+  if (tableStartIdx + 1 >= lines.length) return null;
+  
+  const separatorLine = lines[tableStartIdx + 1];
+  // More flexible separator: must contain | and dashes/colons/spaces
+  const hasSeparator = separatorLine.includes('|') && 
+    (separatorLine.includes('-') || separatorLine.includes(':') || separatorLine.match(/^\|[\s\-:|]+\|$/));
+  
+  if (!hasSeparator) return null;
+
+  // Parse header row
+  const parseRow = (line) => {
+    // Remove leading and trailing | if present, but keep empty cells
+    const cleaned = line.trim();
+    if (!cleaned.includes('|')) return [];
+    
+    // Split by | and trim each cell
+    const cells = cleaned.split('|').map(cell => cell.trim());
+    
+    // Remove empty first/last if they're just from leading/trailing |
+    if (cells.length > 0 && cells[0] === '') cells.shift();
+    if (cells.length > 0 && cells[cells.length - 1] === '') cells.pop();
+    
+    return cells;
+  };
+
+  const headers = parseRow(lines[tableStartIdx]);
+  if (headers.length === 0 || headers.length < 2) return null;
+
+  // Parse data rows (skip separator line)
+  const rows = [];
+  for (let i = tableStartIdx + 2; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Stop if we hit a non-table line (no | or doesn't look like table data)
+    if (!line.includes('|')) break;
+    
+    // Skip if it looks like another separator
+    if (line.match(/^[\s\-:|]+$/) && line.includes('-')) break;
+    
+    const row = parseRow(line);
+    if (row.length === 0) break; // Empty row means end of table
+    
+    // Normalize row length to match headers
+    if (row.length === headers.length) {
+      rows.push(row);
+    } else if (row.length > 0) {
+      // Handle rows with different column counts
+      const normalizedRow = [...row];
+      while (normalizedRow.length < headers.length) {
+        normalizedRow.push('');
+      }
+      rows.push(normalizedRow.slice(0, headers.length));
+    }
+  }
+
+  // Need at least one data row to be a valid table
+  if (rows.length === 0) return null;
+
+  return { headers, rows };
 }
 
 /**
